@@ -1,4 +1,3 @@
-#setwd("C:\\Users\\Admin\\Dropbox\\Music_Stuff\\lfm_shiny")
 library(shinyWidgets)
 library(shiny)
 library(tidyverse)
@@ -58,7 +57,6 @@ server <- function(input, output, session) {
     updateSelectInput(inputId = "artist1", choices = artist_list())
   })
   
-  
   output$plot_albums <- renderPlotly(
     get_album_timeline(hist(), input$artist1)
   )
@@ -80,7 +78,7 @@ server <- function(input, output, session) {
                     max = max_date(),
                     value = c(min_date(), min_date()+100),
                     behaviour = "drag",
-                    limit = 30,
+                    #limit = 30,
                     color = "green",
                     width = "100%")
   })
