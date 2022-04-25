@@ -45,7 +45,7 @@ get_artist_network <- function(hist, tags, start_date, end_date, seed = 1){
            label = artist,
            group = tag) |> 
     mutate(id = label,
-           title = paste0("<p>", id, "<br> Tag: ", group,"</p>"))
+           title = paste0("<p>", id, "<br> Tag: ", group, "<br> Plays:", value, "</p>"))
   
   vis_net <- visNetwork(nodes, edges) |> 
     visIgraphLayout(physics = F) |>
