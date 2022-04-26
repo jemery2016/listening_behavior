@@ -10,6 +10,7 @@ library(plotly)
 library(bslib)
 library(shinydashboard)
 library(lubridate)
+library(shinyjs)
 source("lastfmR_funs_wbar.R")
 source("plays_over_t_funs.R")
 source("track_timeline.R")
@@ -71,16 +72,36 @@ server <- function(input, output, session) {
   max_date <- max(hist()$date_num) |> 
     reactive()
   
+  #trying vertical slider
+  # output$artist_slider <- renderUI({
+  #   noUiSliderInput("artist_slider",
+  #                   min = min_date(),
+  #                   max = max_date(),
+  #                   value = c(max_date()-30, max_date()),
+  #                   #behaviour = "drag",
+  #                   limit = 30,
+  #                   color = "#428bca",
+  #                   update_on = "end",
+  #                   tooltips = F,
+  #                   orientation = "vertical",
+  #                   pips = list(mode = "range", density = 2),
+  #                   direction = "ltr",
+  #                   width = "100px",
+  #                   height = "500px")
+  # })
+  
   output$artist_slider <- renderUI({
     noUiSliderInput("artist_slider",
-                    label = character(0),
                     min = min_date(),
                     max = max_date(),
-                    value = c(min_date(), min_date()+100),
+                    value = c(max_date()-30, max_date()),
                     behaviour = "drag",
-                    #limit = 30,
-                    color = "green",
-                    width = "100%")
+                    limit = 30,
+                    color = "#428bca",
+                    update_on = "end",
+                    tooltips = F,
+                    pips = list(mode = "range", density = 2),
+                    direction = "ltr")
   })
   
   tags <- reactive({

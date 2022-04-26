@@ -92,25 +92,37 @@ body <- dashboardBody(tabItems(
             plotlyOutput(
               outputId = "plot_albums",
               height = "700px"),
-            width = 12,
-            status = "primary"
-          ))),
+              width = NULL,
+              status = "primary"
+            ))),
   
   tabItem(tabName = "artist_network",
-          fluidRow(box(title = "Artist Network Date Range",
-                       uiOutput("artist_slider"),
-                       status = "warning",
-                       height = "200px",
-                       width = 12)),
-          fluidRow(box(
-            visNetworkOutput(
-              outputId = "plot_artist_network",
-              height = "700px"),
-            width = 12,
-            status = "primary"
-          )))
+          fluidRow(
+            box(
+              title = "Artist Network Date Range",
+              uiOutput("artist_slider"),
+              status = "warning",
+              width = 12,
+              height = "150px",
+            )),
+          fluidRow(
+            box(
+              visNetworkOutput(outputId = "plot_artist_network",
+                               height = "700px"),
+              width = 12,
+              status = "primary"
+            )
+          ))
+            #trying vertical slider
+            # box(
+            #   visNetworkOutput(outputId = "plot_artist_network",
+            #                    height = "700px"),
+            #   width = 9,
+            #   status = "primary"
+            # )
+      
 ))
-
+  
 # Put them together into a dashboardPage
 dashboardPage(
   skin = "green",
