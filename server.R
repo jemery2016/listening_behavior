@@ -11,6 +11,8 @@ library(bslib)
 library(shinydashboard)
 library(lubridate)
 library(shinyjs)
+library(visNetwork)
+library(igraph)
 source("lastfmR_funs_wbar.R")
 source("plays_over_t_funs.R")
 source("track_timeline.R")
@@ -66,58 +68,5 @@ server <- function(input, output, session) {
   ################ ARTIST NETWORK ##################
   ##################################################
 
-  min_date <- min(hist()$date_num) |> 
-    reactive()
-  
-  max_date <- max(hist()$date_num) |> 
-    reactive()
-  
-  #trying vertical slider
-  # output$artist_slider <- renderUI({
-  #   noUiSliderInput("artist_slider",
-  #                   min = min_date(),
-  #                   max = max_date(),
-  #                   value = c(max_date()-30, max_date()),
-  #                   #behaviour = "drag",
-  #                   limit = 30,
-  #                   color = "#428bca",
-  #                   update_on = "end",
-  #                   tooltips = F,
-  #                   orientation = "vertical",
-  #                   pips = list(mode = "range", density = 2),
-  #                   direction = "ltr",
-  #                   width = "100px",
-  #                   height = "500px")
-  # })
-  
-  output$artist_slider <- renderUI({
-    noUiSliderInput("artist_slider",
-                    min = min_date(),
-                    max = max_date(),
-                    value = c(max_date()-30, max_date()),
-                    behaviour = "drag",
-                    limit = 30,
-                    color = "#428bca",
-                    update_on = "end",
-                    tooltips = F,
-                    pips = list(mode = "range", density = 2),
-                    direction = "ltr")
-  })
-  
-  tags <- reactive({
-    get_tags(artist_list()) |>
-      group_by(artist) |>
-      summarize(tag = first(tag)) |>
-      as_tibble()
-  })
-  
-  artist_slider <- reactive(input$artist_slider) |> 
-    debounce(1000)
-
-  output$plot_artist_network <- renderVisNetwork({
-    get_artist_network(hist(),
-                       tags(),
-                       artist_slider()[1],
-                       artist_slider()[2])
-  })
+  output$plot_artist_network <- renderVisNetwork(get_artist_network(hist()))
 }

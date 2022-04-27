@@ -10,6 +10,9 @@ library(plotly)
 library(bslib)
 library(shinydashboard)
 library(lubridate)
+library(shinyjs)
+library(visNetwork)
+library(igraph)
 
 #header with the buttons on the right side
 header <- dashboardHeader(title = "Listening Behavior",
@@ -42,25 +45,35 @@ sidebar <- dashboardSidebar(
 #body with outputs
 body <- dashboardBody(tabItems(
   tabItem(tabName = "plays_over_t_tab",
-          fluidRow(box(
-            shiny::sliderInput(
-              inputId = "days",
-              label = "Time Range in Days",
-              min = 1,
-              max = 30,
-              value = 1),
-            width = 6,
-            status = "warning"
-            )),
-          fluidRow(box(
-            DT::dataTableOutput("plays_over_t_table"),
-            width = 6,
-            status = "primary"
-          ))),
+          fluidRow(
+            column(
+              width = 3,
+              box(title = "Welcome!",
+              "Enter your last.fm username and click \"Get Listening History\" to begin. \
+              If your listening history is large give it some time to gather the data. \
+              If you get disconnected from server please try again.",
+              width = NULL)
+              ),
+            column(
+              width = 6,
+              box(title = "Time Range in Days",
+                shiny::sliderInput(
+                  inputId = "days",
+                  label = NULL,
+                  min = 1,
+                  max = 30,
+                  value = 1),
+              status = "warning",
+              width = NULL),
+              box(title = "Top Played Tracks in Time Range",
+                DT::dataTableOutput("plays_over_t_table"),
+                status = "primary",
+                width = NULL)
+          ))), 
   
   tabItem(tabName = "track_timeline",
-          fluidRow(box(
-            selectInput("artist", label = "Artist", ""),
+          fluidRow(box(title = "Select Artist",
+            selectInput("artist", label = NULL, ""),
             status = "warning"
           ),
           box(title = "Plots are Interactive!",
@@ -78,8 +91,8 @@ body <- dashboardBody(tabItems(
           ))),
   
   tabItem(tabName = "album_timeline",
-          fluidRow(box(
-            selectInput("artist1", label = "Artist", ""),
+          fluidRow(box(title = "Select Artist",
+            selectInput("artist1", label = NULL, ""),
             status = "warning"
           ),
           box(title = "Plots are Interactive!",
@@ -98,29 +111,13 @@ body <- dashboardBody(tabItems(
   
   tabItem(tabName = "artist_network",
           fluidRow(
-            box(
-              title = "Artist Network Date Range",
-              uiOutput("artist_slider"),
-              status = "warning",
-              width = 12,
-              height = "150px",
-            )),
-          fluidRow(
-            box(
+            box(title = "Artist Network from Past 30 Days",
               visNetworkOutput(outputId = "plot_artist_network",
-                               height = "700px"),
+                               height = "800px"),
               width = 12,
               status = "primary"
             )
           ))
-            #trying vertical slider
-            # box(
-            #   visNetworkOutput(outputId = "plot_artist_network",
-            #                    height = "700px"),
-            #   width = 9,
-            #   status = "primary"
-            # )
-      
 ))
   
 # Put them together into a dashboardPage
