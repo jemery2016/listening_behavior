@@ -53,7 +53,7 @@ get_artist_network <- function(hist, seed = 1){
                           "</p>"))
   
   vis_net <- visNetwork(nodes, edges) |> 
-    visIgraphLayout(layout = "layout_with_kk") |>
+    visIgraphLayout(layout = "layout_nicely") |>
     visNodes(labelHighlightBold = T) |> 
     visOptions(highlightNearest = list(enabled = T, degree = 1)) |> 
     visLayout(randomSeed = seed)
