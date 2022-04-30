@@ -1,5 +1,9 @@
 api_root <- "http://ws.audioscrobbler.com/2.0/?method="
-api_key <- "23fadd845ffb9a4ece7caeaecd74c94e"
+
+api_key <- "d978acf940ce7b2c0bc0e9ff5ebaa9c1"
+if(runif(1) <= .33) api_key <- "23fadd845ffb9a4ece7caeaecd74c94e"
+if(runif(1) <= .33) api_key <- "fd6f2f7f5b08c83f35fa041c42673dff"
+
 
 # reformat curl reponse
 parse_content <- function(response){
