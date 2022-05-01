@@ -1,12 +1,24 @@
-library(ggraph)
 
 #COMMUNITY DETECTION
+library(igraph)
+library(ggraph)
+library(tidyverse)
+library(lastfmR)
+library(lubridate)
+library(beepr)
+library(visNetwork)
 
 #getting listening history
 hist <- lastfmR::get_scrobbles("jemery2016", "EST") |> 
   mutate(date_num = ymd_hms(date) |> 
            as_date() |> 
            as.numeric()) |> 
+  as_tibble()
+
+#artists and plays
+artist <- hist |> 
+  group_by(artist) |> 
+  summarize(plays = n()) |> 
   as_tibble()
 
 #getting artist edges
@@ -33,13 +45,19 @@ edges <- artist_edge_df |>
 #creating igraph object
 G <- graph_from_data_frame(edges)
 #running community detection
-comms <- cluster_infomap(G)
+com <- cluster_infomap(G)
 
-#creating df of artists and their communities
-comms_df <- tibble(artist = comms$names, comm = comms$membership)
+#creating df of artists, communities, and plays
+coms_df <- tibble(artist = comms$names, com = comms$membership) |> 
+  left_join(artist, by = 'artist')
+
+#plays by community
+com_plays <- coms_df |> 
+  group_by(com) |> 
+  summarize(com_plays = sum(plays))
 
 #creating new edge df with just communities
-edges_w_comms <- edges |> 
+edges_com <- edges |> 
   left_join(comms_df, by = c("source" = "artist")) |> 
   left_join(comms_df, by = c("target" = "artist")) |> 
   select(-source, -target) |> 
@@ -49,11 +67,31 @@ edges_w_comms <- edges |>
   group_by(source, target) |> 
   summarize(weight = sum(weight), .groups = "drop")
 
+nodes_com <- tibble(id = unique(edges_w_comms$source),
+                        in_degree = count(edges_w_comms, target)$n) |> 
+  mutate(value = com_plays$com_plays)
+
+
+visNetwork(nodes_com, rename(edges_com, from = source, to = target)) |> 
+  visIgraphLayout()
+
+
+
+
+
+
 #new igraph from community graph
-G_comm <- graph_from_data_frame(edges_w_comms)
+G_comm <- graph_from_data_frame(edges_w_comms, vertices = nodes_w_comms)
 
 
-lay <- create_layout(G_comm, layout = "kk")
-ggraph(lay) |> 
-  geom_node_point() |> 
-  geom_edge_link()
+my_lay <- create_layout(G_comm, layout = "kk")
+
+ggraph(my_lay) + 
+  geom_node_point(aes(size = in_degree)) + 
+  geom_edge_link(aes(alpha = weight, width = weight))
+
+
+
+
+
+
