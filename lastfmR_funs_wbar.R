@@ -1,9 +1,6 @@
 api_root <- "http://ws.audioscrobbler.com/2.0/?method="
 
-api_key <- "d978acf940ce7b2c0bc0e9ff5ebaa9c1"
-if(runif(1) <= .33) api_key <- "23fadd845ffb9a4ece7caeaecd74c94e"
-if(runif(1) <= .33) api_key <- "fd6f2f7f5b08c83f35fa041c42673dff"
-
+api_key <- "23fadd845ffb9a4ece7caeaecd74c94e"
 
 # reformat curl reponse
 parse_content <- function(response){
@@ -44,7 +41,7 @@ get_scrobbles <- function(user, timezone = 'GMT') {
   # total number of scrobbles
   # +20 to prevent out of range error
   # (if the user is scrobbling right now, data grows during downloading)
-  total <- as.integer(xml_attr(pageline, 'total')) + 20
+  total <- as.integer(xml_attr(pageline, 'total'))
   
   #allocate data.table
   scrobbles <- data.table(
@@ -70,9 +67,12 @@ get_scrobbles <- function(user, timezone = 'GMT') {
     page_index <- which(lastfm_urls == response$url)
     parsed_xml <- read_xml(parse_content(response))
     entries <- xml_find_all(parsed_xml, ".//track")
-    if (!is.na(xml_attr(entries[1], 'nowplaying'))) {
+    if (length(entries) == 1001 | length(entries) == total%%1000+1){
       entries <- entries[2:length(entries)]
     }
+    # if (!is.na(xml_attr(entries[1], 'nowplaying'))) {
+    #   entries <- entries[2:length(entries)]
+    # }
     dates <- as.integer(xml_attr(xml_find_all(entries, './/date'), 'uts'))
     artists <- xml_text(xml_find_all(entries, './/artist'))
     tracks <- xml_text(xml_find_all(entries, './/name'))

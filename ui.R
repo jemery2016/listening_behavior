@@ -51,7 +51,8 @@ body <- dashboardBody(tabItems(
               box(title = "Welcome!",
               "Enter your last.fm username and click \"Get Listening History\" to begin. \
               If your listening history is large give it some time to gather the data. \
-              If you get disconnected from server please try again.",
+              If you get disconnected from server please try again. If it continues to be \
+              disconnected, try pausing music while data is being collected.",
               width = NULL)
               ),
             column(
@@ -111,6 +112,9 @@ body <- dashboardBody(tabItems(
   
   tabItem(tabName = "artist_network",
           fluidRow(
+            box(title = "Plots are Interactive!",
+                width = 4,
+                "Hover over nodes to see plays and tags. Click a node to higlight its neighbors."),
             box(title = "Artist Network from Past 30 Days",
               visNetworkOutput(outputId = "plot_artist_network",
                                height = "800px"),
