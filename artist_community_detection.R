@@ -45,10 +45,11 @@ edges <- artist_edge_df |>
 #creating igraph object
 G <- graph_from_data_frame(edges)
 #running community detection
-com <- cluster_infomap(G)
+#com <- cluster_infomap(G)
+com <- cluster_walktrap(G)
 
 #creating df of artists, communities, and plays
-coms_df <- tibble(artist = comms$names, com = comms$membership) |> 
+coms_df <- tibble(artist = com$names, com = com$membership) |> 
   left_join(artist, by = 'artist')
 
 #plays by community
@@ -58,40 +59,20 @@ com_plays <- coms_df |>
 
 #creating new edge df with just communities
 edges_com <- edges |> 
-  left_join(comms_df, by = c("source" = "artist")) |> 
-  left_join(comms_df, by = c("target" = "artist")) |> 
+  left_join(coms_df, by = c("source" = "artist")) |> 
+  left_join(coms_df, by = c("target" = "artist")) |> 
   select(-source, -target) |> 
-  rename(source = comm.x,
-         target = comm.y) |> 
+  rename(source = com.x,
+         target = com.y) |> 
   filter(source != target) |> 
   group_by(source, target) |> 
   summarize(weight = sum(weight), .groups = "drop")
 
-nodes_com <- tibble(id = unique(edges_w_comms$source),
-                        in_degree = count(edges_w_comms, target)$n) |> 
+nodes_com <- tibble(id = unique(edges_com$source),
+                        in_degree = count(edges_com, target)$n) |> 
   mutate(value = com_plays$com_plays)
 
 
 visNetwork(nodes_com, rename(edges_com, from = source, to = target)) |> 
   visIgraphLayout()
-
-
-
-
-
-
-#new igraph from community graph
-G_comm <- graph_from_data_frame(edges_w_comms, vertices = nodes_w_comms)
-
-
-my_lay <- create_layout(G_comm, layout = "kk")
-
-ggraph(my_lay) + 
-  geom_node_point(aes(size = in_degree)) + 
-  geom_edge_link(aes(alpha = weight, width = weight))
-
-
-
-
-
 
