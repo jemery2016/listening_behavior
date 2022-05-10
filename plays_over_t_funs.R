@@ -2,53 +2,50 @@
 ################ PLAYS OVER T ##################
 ################################################
 
-get_dist <- function(hist, track_name, artist_name){
-  return(
-    hist %>% 
-      filter(track == track_name & artist == artist_name) %>% 
-      pull(date) %>% 
-      Dist() %>% 
-      as.matrix()
-  )
-}
-
 lower_to_na <- function(mat){
   mat[lower.tri(mat)] <- NA
   return(mat)
 }
 
-plays_over_t <- function(track_dist, t){
+get_dist <- function(dates){
   return(
-    max(
-      apply(X = (track_dist <= t*86400),
-            FUN  = sum,
-            na.rm = T,
-            MARGIN = 1)
-    )
+    dates$date |>
+      Dist() |> 
+      lower_to_na()
   )
 }
 
+plays_over_t <- function(track_dist, t){
+  return(
+    apply(X = (track_dist <= t*86400),
+          FUN  = sum,
+          na.rm = T,
+          MARGIN = 1) |> 
+      max()
+  )
+}
+
+
 get_plays_over_t_table <- function(hist, days){
   
-  tracks <- hist %>% 
-    group_by(track, artist) %>% 
-    summarize(plays = n(), .groups = "drop") %>% 
-    arrange(desc(plays)) %>% 
-    utils::head(200) %>% 
-    as_tibble() %>% 
-    rowwise() %>%  
-    mutate(dist = list(get_dist(hist, track, artist))) %>% 
-    ungroup()
+  hist <- hist |>
+    select(-album, -date_num)
   
-  tracks$dist <- lapply(X = tracks$dist, FUN = lower_to_na)
+  tracks <- hist |> 
+    group_by(track, artist) |> 
+    nest(dates = date) |> 
+    as_tibble() |> 
+    rowwise() |> 
+    mutate(plays = nrow(dates)) |> 
+    filter(plays > 1) 
   
-  tracks <- tracks %>% 
-    mutate(plays_over_t = sapply(X = tracks$dist, 
-                                 FUN = plays_over_t, 
-                                 t = days)) %>% 
-    select(-dist) %>% 
-    arrange(desc(plays_over_t)) %>% 
-    relocate(artist, track, plays_over_t, plays)
+  tracks$dist <- sapply(tracks$dates, get_dist)
+  
+  tracks$plays_over_t <- sapply(tracks$dist, plays_over_t, t = days)
+  
+  tracks <- tracks |> 
+    arrange(desc(plays_over_t)) |> 
+    select(artist, track, plays_over_t, plays) 
   
   colnames(tracks) <- c("Artist",
                         "Track",
@@ -57,3 +54,12 @@ get_plays_over_t_table <- function(hist, days){
   
   return(tracks)
 }
+
+
+
+#ref
+hist <- lastfmR::get_scrobbles("eniiler", "EST") |> 
+  mutate(date_num = ymd_hms(date) |> 
+           as_date() |> 
+           as.numeric()) |> 
+  as_tibble()
