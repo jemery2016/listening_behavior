@@ -35,10 +35,18 @@ server <- function(input, output, session) {
   ################ PLAYS OVER T ##################
   ################################################
   
-  output$plays_over_t_table <- DT::renderDataTable(
-    get_plays_over_t_table(hist(), input$days)
+  output$plays_over_t_tracks <- DT::renderDataTable(
+    get_plays_over_t_tracks(hist(), input$days)
   )
   
+  output$plays_over_t_albums <- DT::renderDataTable(
+    get_plays_over_t_albums(hist(), input$days)
+  )
+  
+  output$plays_over_t_artists <- DT::renderDataTable(
+    get_plays_over_t_artists(hist(), input$days)
+  )
+
   ##################################################
   ################ TRACK TIMELINE ##################
   ##################################################

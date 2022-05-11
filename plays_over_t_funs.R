@@ -25,8 +25,7 @@ plays_over_t <- function(track_dist, t){
   )
 }
 
-
-get_plays_over_t_table <- function(hist, days){
+get_plays_over_t_tracks <- function(hist, days){
   
   hist <- hist |>
     select(-album, -date_num)
@@ -55,11 +54,60 @@ get_plays_over_t_table <- function(hist, days){
   return(tracks)
 }
 
+get_plays_over_t_albums <- function(hist, days){
+  
+  hist <- hist |> 
+    select(artist, album, date)
+  
+  albums <- hist |> 
+    group_by(album) |> 
+    nest(dates = date) |> 
+    as_tibble() |> 
+    rowwise() |> 
+    mutate(plays = nrow(dates)) |> 
+    filter(plays > 1)
+  
+  albums$dist <- sapply(albums$dates, get_dist)
+  
+  albums$plays_over_t <- sapply(albums$dist, plays_over_t, t = days)
+  
+  albums <- albums |> 
+    arrange(desc(plays_over_t)) |> 
+    select(artist, album, plays_over_t, plays)
+  
+  colnames(albums) <- c("Artist",
+                        "Album",
+                        paste("Max Plays Over", days, "Days"),
+                        "Total Plays")
+  
+  return(albums)
+}
 
+get_plays_over_t_artists <- function(hist, days){
+  
+  hist <- hist |> 
+    select(artist, date)
+  
+  artists <- hist |> 
+    group_by(artist) |> 
+    nest(dates = date) |> 
+    as_tibble() |> 
+    rowwise() |> 
+    mutate(plays = nrow(dates)) |> 
+    filter(plays > 1)
+  
+  artists$dist <- sapply(artists$dates, get_dist)
+  
+  artists$plays_over_t <- sapply(artists$dist, plays_over_t, t = days)
+  
+  artists <- artists |> 
+    arrange(desc(plays_over_t)) |> 
+    select(artist, plays_over_t, plays)
+  
+  colnames(artists) <- c("Artist",
+                        paste("Max Plays Over", days, "Days"),
+                        "Total Plays")
+  
+  return(artists)
+}
 
-#ref
-hist <- lastfmR::get_scrobbles("eniiler", "EST") |> 
-  mutate(date_num = ymd_hms(date) |> 
-           as_date() |> 
-           as.numeric()) |> 
-  as_tibble()

@@ -1,4 +1,3 @@
-
 #COMMUNITY DETECTION
 library(igraph)
 library(ggraph)
@@ -55,7 +54,8 @@ coms_df <- tibble(artist = com$names, com = com$membership) |>
 #plays by community
 com_plays <- coms_df |> 
   group_by(com) |> 
-  summarize(com_plays = sum(plays))
+  summarize(com_plays = sum(plays),
+            n_artists = n())
 
 #creating new edge df with just communities
 edges_com <- edges |> 
@@ -75,4 +75,11 @@ nodes_com <- tibble(id = unique(edges_com$source),
 
 visNetwork(nodes_com, rename(edges_com, from = source, to = target)) |> 
   visIgraphLayout()
+
+#THINKING ABOUT RANKINGS
+EC <- eigen_centrality(G)
+EC$vector |> sort(decreasing = T) |> head(20)
+
+PR <- page_rank(G)
+PR$vector |> sort(decreasing = T) |> head(20)
 
