@@ -36,7 +36,7 @@ get_plays_over_t_tracks <- function(hist, days){
     as_tibble() |> 
     rowwise() |> 
     mutate(plays = nrow(dates)) |> 
-    filter(plays > 1) 
+    filter(plays > 2) 
   
   tracks$dist <- sapply(tracks$dates, get_dist)
   
@@ -65,7 +65,7 @@ get_plays_over_t_albums <- function(hist, days){
     as_tibble() |> 
     rowwise() |> 
     mutate(plays = nrow(dates)) |> 
-    filter(plays > 1)
+    filter(plays > 2)
   
   albums$dist <- sapply(albums$dates, get_dist)
   
@@ -94,7 +94,7 @@ get_plays_over_t_artists <- function(hist, days){
     as_tibble() |> 
     rowwise() |> 
     mutate(plays = nrow(dates)) |> 
-    filter(plays > 1)
+    filter(plays > 2)
   
   artists$dist <- sapply(artists$dates, get_dist)
   
