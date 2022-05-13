@@ -7,17 +7,12 @@ lower_to_na <- function(mat){
   return(mat)
 }
 
-get_dist <- function(dates){
+get_dist_plays <- function(dates, t){
+  dist <- dates$date |> 
+    Dist() |> 
+    lower_to_na()
   return(
-    dates$date |>
-      Dist() |> 
-      lower_to_na()
-  )
-}
-
-plays_over_t <- function(track_dist, t){
-  return(
-    apply(X = (track_dist <= t*86400),
+    apply(X = (dist <= t*86400),
           FUN  = sum,
           na.rm = T,
           MARGIN = 1) |> 
@@ -38,9 +33,7 @@ get_plays_over_t_tracks <- function(hist, days){
     mutate(plays = nrow(dates)) |> 
     filter(plays > 2) 
   
-  tracks$dist <- sapply(tracks$dates, get_dist)
-  
-  tracks$plays_over_t <- sapply(tracks$dist, plays_over_t, t = days)
+  tracks$plays_over_t <- sapply(tracks$dates, get_dist_plays, t = days)
   
   tracks <- tracks |> 
     arrange(desc(plays_over_t)) |> 
@@ -67,9 +60,7 @@ get_plays_over_t_albums <- function(hist, days){
     mutate(plays = nrow(dates)) |> 
     filter(plays > 2)
   
-  albums$dist <- sapply(albums$dates, get_dist)
-  
-  albums$plays_over_t <- sapply(albums$dist, plays_over_t, t = days)
+  albums$plays_over_t <- sapply(albums$dates, get_dist_plays, t = days)
   
   albums <- albums |> 
     arrange(desc(plays_over_t)) |> 
@@ -96,9 +87,7 @@ get_plays_over_t_artists <- function(hist, days){
     mutate(plays = nrow(dates)) |> 
     filter(plays > 2)
   
-  artists$dist <- sapply(artists$dates, get_dist)
-  
-  artists$plays_over_t <- sapply(artists$dist, plays_over_t, t = days)
+  artists$plays_over_t <- sapply(artists$dates, get_dist_plays, t = days)
   
   artists <- artists |> 
     arrange(desc(plays_over_t)) |> 
