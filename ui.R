@@ -112,7 +112,7 @@ body <- dashboardBody(tabItems(
             plotlyOutput(
               outputId = "plot_albums",
               height = "700px"),
-              width = NULL,
+              width = 12,
               status = "primary"
             ))),
   

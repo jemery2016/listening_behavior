@@ -22,14 +22,19 @@ source("artist_network.R")
 server <- function(input, output, session) {
   
   #getting listening history
-  hist <- eventReactive(
-    input$get_hist, 
-    get_scrobbles(input$user_id, timezone = input$timezone) |> 
-      mutate(date_num = ymd_hms(date) |> 
-               as_date() |> 
-               as.numeric()) |> 
-      as_tibble()
-  )
+  hist <- eventReactive(input$get_hist, {
+    ret <- tryCatch(
+     get_scrobbles(input$user_id, timezone = input$timezone) |> 
+        mutate(date_num = ymd_hms(date) |> 
+                 as_date() |> 
+                 as.numeric()) |> 
+        as_tibble(),
+      error = function(e) conditionMessage(e))
+    validate(
+      need(typeof(ret) != "character", "Invalid Username")
+    )
+    ret
+   })
   
   ################################################
   ################ PLAYS OVER T ##################
