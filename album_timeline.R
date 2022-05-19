@@ -2,28 +2,31 @@
 ################ ALBUM TIMELINE ##################
 ##################################################
 
-get_album_timeline <- function(hist, input_artist){
+get_album_timeline <- function(albums, input_artist){
   
   if(input_artist == ""){
     return(NULL)
   } 
   else{
-    #filtering down to artist
-    artist <- hist %>% 
-      filter(artist == input_artist) %>% 
+    #filtering down to artist and getting play ranks
+    artist_albums <- albums |> 
+      filter(artist == input_artist) |> 
       as_tibble()
+    artist_albums$play_rank <- artist_albums$plays |> 
+      desc() |> 
+      row_number()
     
     #getting album track counts
-    album_track_count <- artist %>% 
-      group_by(album) %>% 
+    album_track_count <- artist |> 
+      group_by(album) |> 
       summarize(track_count = n_distinct(track))
     
-    #getting play number after filtering albums w/less then 5 tracks
-    artist_albums <- artist %>% 
-      left_join(album_track_count, by = "album") %>% 
-      filter(track_count > 4) %>% 
-      group_by(album) %>% 
-      mutate(play_num = rank(date)) %>% 
+    #getting play number after filtering albums w/less than 5 tracks
+    artist_albums <- artist_albums |> 
+      left_join(album_track_count, by = "album") |> 
+      filter(track_count > 3) |> 
+      group_by(album) |> 
+      mutate(play_num = rank(date)) |> 
       as_tibble()
     
     if(nrow(artist_albums) == 0){

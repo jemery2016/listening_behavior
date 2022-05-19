@@ -21,6 +21,38 @@ source("artist_network.R")
 
 server <- function(input, output, session) {
   
+  #reference code
+  # hist <- lastfmR::get_scrobbles("eniiler", timezone = "EST") |>
+  #   mutate(date_num = ymd_hms(date) |>
+  #            as_date() |>
+  #            as.numeric()) |>
+  #   as_tibble()
+  # 
+  # tracks <- hist |>
+  #   select(artist, track, date) |>
+  #   group_by(track, artist) |>
+  #   nest(dates = date) |>
+  #   as_tibble() |>
+  #   rowwise() |>
+  #   mutate(plays = nrow(dates))
+  # 
+  # albums <- hist |>
+  #   select(artist, album, date) |>
+  #   group_by(album, artist) |>
+  #   nest(dates = date) |>
+  #   as_tibble() |>
+  #   rowwise() |>
+  #   mutate(plays = nrow(dates))
+  # 
+  # artists <- hist |>
+  #   select(artist, date) |>
+  #   group_by(artist) |>
+  #   nest(dates = date) |>
+  #   as_tibble() |>
+  #   rowwise() |>
+  #   mutate(plays = nrow(dates))
+  
+  
   #getting listening history
   hist <- eventReactive(input$get_hist, {
     ret <- tryCatch(
@@ -36,20 +68,50 @@ server <- function(input, output, session) {
     ret
    })
   
+  tracks <- eventReactive(input$get_hist, {
+    hist() |> 
+      select(artist, track, date) |> 
+      group_by(track, artist) |> 
+      nest(dates = date) |> 
+      as_tibble() |> 
+      rowwise() |> 
+      mutate(plays = nrow(dates))
+  })
+  
+  albums <- eventReactive(input$get_hist, {
+    hist() |> 
+      select(artist, album, date) |> 
+      group_by(album, artist) |> 
+      nest(dates = date) |> 
+      as_tibble() |> 
+      rowwise() |> 
+      mutate(plays = nrow(dates))
+  })
+  
+  artists <- eventReactive(input$get_hist, {
+    hist() |> 
+      select(artist, date) |> 
+      group_by(artist) |> 
+      nest(dates = date) |> 
+      as_tibble() |> 
+      rowwise() |> 
+      mutate(plays = nrow(dates))
+  })
+  
   ################################################
   ################ PLAYS OVER T ##################
   ################################################
   
   output$plays_over_t_tracks <- DT::renderDataTable(
-    get_plays_over_t_tracks(hist(), input$days)
+    get_plays_over_t_tracks(tracks(), input$days)
   )
   
   output$plays_over_t_albums <- DT::renderDataTable(
-    get_plays_over_t_albums(hist(), input$days)
+    get_plays_over_t_albums(albums(), input$days)
   )
   
   output$plays_over_t_artists <- DT::renderDataTable(
-    get_plays_over_t_artists(hist(), input$days)
+    get_plays_over_t_artists(artists(), input$days)
   )
 
   ##################################################
@@ -62,7 +124,7 @@ server <- function(input, output, session) {
   })
   
   output$plot_tracks <- renderPlotly(
-    get_track_timeline(hist(), input$artist)
+    get_track_timeline(tracks(), input$artist)
   )
   
   ##################################################

@@ -20,18 +20,7 @@ get_dist_plays <- function(dates, t){
   )
 }
 
-get_plays_over_t_tracks <- function(hist, days){
-  
-  hist <- hist |>
-    select(-album, -date_num)
-  
-  tracks <- hist |> 
-    group_by(track, artist) |> 
-    nest(dates = date) |> 
-    as_tibble() |> 
-    rowwise() |> 
-    mutate(plays = nrow(dates)) |> 
-    filter(plays > 2) 
+get_plays_over_t_tracks <- function(tracks, days){
   
   tracks$plays_over_t <- sapply(tracks$dates, get_dist_plays, t = days)
   
@@ -47,18 +36,7 @@ get_plays_over_t_tracks <- function(hist, days){
   return(tracks)
 }
 
-get_plays_over_t_albums <- function(hist, days){
-  
-  hist <- hist |> 
-    select(artist, album, date)
-  
-  albums <- hist |> 
-    group_by(album) |> 
-    nest(dates = date) |> 
-    as_tibble() |> 
-    rowwise() |> 
-    mutate(plays = nrow(dates)) |> 
-    filter(plays > 2)
+get_plays_over_t_albums <- function(albums, days){
   
   albums$plays_over_t <- sapply(albums$dates, get_dist_plays, t = days)
   
@@ -74,18 +52,7 @@ get_plays_over_t_albums <- function(hist, days){
   return(albums)
 }
 
-get_plays_over_t_artists <- function(hist, days){
-  
-  hist <- hist |> 
-    select(artist, date)
-  
-  artists <- hist |> 
-    group_by(artist) |> 
-    nest(dates = date) |> 
-    as_tibble() |> 
-    rowwise() |> 
-    mutate(plays = nrow(dates)) |> 
-    filter(plays > 2)
+get_plays_over_t_artists <- function(artists, days){
   
   artists$plays_over_t <- sapply(artists$dates, get_dist_plays, t = days)
   

@@ -2,39 +2,35 @@
 ################ TRACK TIMELINE ##################
 ##################################################
 
-get_track_timeline <- function(hist, input_artist){
+get_track_timeline <- function(tracks, input_artist){
 
   if(input_artist == ""){
     return(NULL)
   }
   else {
-    #filtering down to a single artist
-    artist_hist <- hist %>% 
-      filter(artist == input_artist) %>% 
+    #filtering down to a single artist and getting play ranks
+    artist_tracks <- tracks |>  
+      filter(artist == input_artist) |> 
       as_tibble()
+    artist_tracks$play_rank <- artist_tracks$plays |> 
+      desc() |> 
+      row_number()
     
-    #getting total plays and play ranking
-    artist_track_rank <- artist_hist %>% 
-      group_by(artist, track) %>% 
-      summarize(plays = n()) %>% 
-      arrange(desc(plays))
-    artist_track_rank$play_rank <- 1:nrow(artist_track_rank)
-    
-    #filtering to top 10 tracks by plays and getting play number
-    artist_hist <- artist_hist %>% 
-      left_join(artist_track_rank) %>% 
-      filter(play_rank <= 10) %>% 
-      mutate(date_utc = as.numeric(date)) %>% 
-      group_by(track) %>% 
-      mutate(play_num = rank(date))
+    #filtering to top 15 tracks by plays and getting play number
+    artist_hist <- artist_tracks |> 
+      filter(play_rank <= 15) |> 
+      unnest_longer(dates) |> 
+      mutate(dates = dates$date) |>
+      group_by(track) |> 
+      mutate(play_num = rank(dates))
     
     data <- highlight_key(artist_hist, ~track)
     
-    p <- ggplot(data, aes(x = date, y = play_num, color = track)) + 
+    p <- ggplot(data, aes(x = dates, y = play_num, color = track)) + 
       geom_point(aes(text = paste(
         "Track:", track,
         "\nPlay Count:", play_num,
-        "\nDate:", date))) + 
+        "\nDate:", dates))) + 
       geom_line() + 
       labs(x = "Date",
            y = "Play Count",
