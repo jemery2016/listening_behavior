@@ -39,7 +39,7 @@ get_artist_network <- function(hist, seed = 1){
            to = next_artist,
            width = edge_count) |> 
     mutate(arrows = "to",
-           color.opacity = 0.4) |> 
+           color.opacity = 0.8) |> 
     select(-first_date)
   
   nodes <- artist_node_df |> 

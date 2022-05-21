@@ -31,7 +31,7 @@ server <- function(input, output, session) {
         as_tibble(),
       error = function(e) conditionMessage(e))
     validate(
-      need(typeof(ret) != "character", "Invalid Username")
+      need(typeof(ret) != "character", "Invalid Username or API Crash")
     )
     ret
    })

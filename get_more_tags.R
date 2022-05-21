@@ -19,3 +19,18 @@ get_more_tags <- function(artist_node_df){
   }
   return(artist_node_df)
 }
+
+#reference code  
+hist <- lastfmR::get_scrobbles("eniiler", timezone = "EST") |> 
+  mutate(date_num = ymd_hms(date) |> 
+           as_date() |> 
+           as.numeric()) |> 
+  as_tibble()
+
+artist_node_df <- hist |>
+  group_by(artist) |> 
+  summarize(plays = n()) |> 
+  as_tibble()
+
+
+lib_info <- lastfmR::get_library_info("eniiler")

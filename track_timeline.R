@@ -20,10 +20,10 @@ get_track_timeline <- function(hist, input_artist){
       arrange(desc(plays))
     artist_track_rank$play_rank <- 1:nrow(artist_track_rank)
     
-    #filtering to top 10 tracks by plays and getting play number
+    #filtering to top 15 tracks by plays and getting play number
     artist_hist <- artist_hist %>% 
       left_join(artist_track_rank) %>% 
-      filter(play_rank <= 10) %>% 
+      filter(play_rank <= 15) %>% 
       mutate(date_utc = as.numeric(date)) %>% 
       group_by(track) %>% 
       mutate(play_num = rank(date))
