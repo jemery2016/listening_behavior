@@ -13,6 +13,9 @@ library(lubridate)
 library(shinyjs)
 library(visNetwork)
 library(igraph)
+library(promises)
+library(future)
+plan(multisession)
 source("lastfmR_funs_wbar.R")
 source("plays_over_t_funs.R")
 source("track_timeline.R")
@@ -21,20 +24,31 @@ source("artist_network.R")
 
 server <- function(input, output, session) {
   
-  #getting listening history
+  #getting listening history async
   hist <- eventReactive(input$get_hist, {
-    ret <- tryCatch(
-     get_scrobbles(input$user_id, timezone = input$timezone) |> 
+    future_promise({
+      get_scrobbles(input$user_id, timezone = input$timezone) %...>%
         mutate(date_num = ymd_hms(date) |> 
                  as_date() |> 
-                 as.numeric()) |> 
-        as_tibble(),
-      error = function(e) conditionMessage(e))
-    validate(
-      need(typeof(ret) != "character", "Invalid Username or API Crash")
-    )
-    ret
-   })
+                 as.numeric()) %...>%
+        as_tibble()
+    })
+  })
+  
+  #getting listening history
+  # hist <- eventReactive(input$get_hist, {
+  #   ret <- tryCatch(
+  #    get_scrobbles(input$user_id, timezone = input$timezone) |> 
+  #       mutate(date_num = ymd_hms(date) |> 
+  #                as_date() |> 
+  #                as.numeric()) |> 
+  #       as_tibble(),
+  #     error = function(e) conditionMessage(e))
+  #   validate(
+  #     need(typeof(ret) != "character", "Invalid Username or API Crash")
+  #   )
+  #   ret
+  #  })
   
   ################################################
   ################ PLAYS OVER T ##################
