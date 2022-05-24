@@ -22,17 +22,26 @@ source("track_timeline.R")
 source("album_timeline.R")
 source("artist_network.R")
 
+#reference code
+# hist <- future_promise(
+#   lastfmR::get_scrobbles("eniiler", "EST"),
+#   packages = "lastfmR"
+#   )
+# 
+# p_over_t <- hist %...>%
+#   get_plays_over_t_tracks(1)
+
 server <- function(input, output, session) {
   
   #getting listening history async
   hist <- eventReactive(input$get_hist, {
+    user_id <- input$user_id
+    timezone <- input$timezone
     future_promise({
-      get_scrobbles(input$user_id, timezone = input$timezone) %...>%
-        mutate(date_num = ymd_hms(date) |> 
-                 as_date() |> 
-                 as.numeric()) %...>%
-        as_tibble()
-    })
+      lastfmR::get_scrobbles(user_id, timezone) %...>%
+        as_tibble()},
+      packages = "lastfmR"
+    )
   })
   
   #getting listening history
@@ -54,9 +63,15 @@ server <- function(input, output, session) {
   ################ PLAYS OVER T ##################
   ################################################
   
-  output$plays_over_t_tracks <- DT::renderDataTable(
-    get_plays_over_t_tracks(hist(), input$days)
-  )
+  output$plays_over_t_tracks <- DT::renderDataTable({
+    days <- input$days
+    promise_all(hist = hist()) %...>% 
+      with(get_plays_over_t_tracks(hist, days))
+  })
+
+  # output$plays_over_t_tracks <- DT::renderDataTable(
+  #   get_plays_over_t_tracks(hist(), input$days)
+  # )
   
   output$plays_over_t_albums <- DT::renderDataTable(
     get_plays_over_t_albums(hist(), input$days)
