@@ -21,7 +21,7 @@ get_album_timeline <- function(hist, input_artist){
     #getting play number after filtering albums w/less then 5 tracks
     artist_albums <- artist %>% 
       left_join(album_track_count, by = "album") %>% 
-      filter(track_count > 4) %>% 
+      filter(track_count > 3) %>% 
       group_by(album) %>% 
       mutate(play_num = rank(date)) %>% 
       as_tibble()

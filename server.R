@@ -22,14 +22,6 @@ source("track_timeline.R")
 source("album_timeline.R")
 source("artist_network.R")
 
-#reference code
-# hist <- future_promise(
-#   lastfmR::get_scrobbles("eniiler", "EST"),
-#   packages = "lastfmR"
-#   )
-# 
-# p_over_t <- hist %...>%
-#   get_plays_over_t_tracks(1)
 
 server <- function(input, output, session) {
   
@@ -37,78 +29,78 @@ server <- function(input, output, session) {
   hist <- eventReactive(input$get_hist, {
     user_id <- input$user_id
     timezone <- input$timezone
-    future_promise({
-      lastfmR::get_scrobbles(user_id, timezone) %...>%
-        as_tibble()},
+    p <- Progress$new()
+    #p$set(value = NULL, message = "Getting Listening History...")
+    future_promise(
+      lastfmR::get_scrobbles(user_id, timezone),
       packages = "lastfmR"
-    )
+    ) %...>%
+      mutate(date_num = ymd_hms(date) |> 
+               as_date() |> 
+               as.numeric()) %...>%
+      as_tibble()
+    #finally(~p$close())
   })
-  
-  #getting listening history
-  # hist <- eventReactive(input$get_hist, {
-  #   ret <- tryCatch(
-  #    get_scrobbles(input$user_id, timezone = input$timezone) |> 
-  #       mutate(date_num = ymd_hms(date) |> 
-  #                as_date() |> 
-  #                as.numeric()) |> 
-  #       as_tibble(),
-  #     error = function(e) conditionMessage(e))
-  #   validate(
-  #     need(typeof(ret) != "character", "Invalid Username or API Crash")
-  #   )
-  #   ret
-  #  })
   
   ################################################
   ################ PLAYS OVER T ##################
   ################################################
   
-  output$plays_over_t_tracks <- DT::renderDataTable({
-    days <- input$days
-    promise_all(hist = hist()) %...>% 
-      with(get_plays_over_t_tracks(hist, days))
-  })
-
-  # output$plays_over_t_tracks <- DT::renderDataTable(
-  #   get_plays_over_t_tracks(hist(), input$days)
-  # )
+  output$plays_over_t_tracks <- DT::renderDataTable(
+    hist() %...>%
+      get_plays_over_t_tracks(input$days)
+  )
   
   output$plays_over_t_albums <- DT::renderDataTable(
-    get_plays_over_t_albums(hist(), input$days)
+    hist() %...>%
+      get_plays_over_t_albums(input$days)
   )
   
   output$plays_over_t_artists <- DT::renderDataTable(
-    get_plays_over_t_artists(hist(), input$days)
+    hist() %...>%
+      get_plays_over_t_artists(input$days)
   )
 
   ##################################################
   ################ TRACK TIMELINE ##################
   ##################################################
-  artist_list <- reactive(unique(hist()$artist))
-  
   observe({
-    updateSelectInput(inputId = "artist", choices = artist_list())
+    hist() %...>% {
+      hist <- .
+      hist$artist %>%
+        unique() %>%
+        updateSelectInput(inputId = "artist", choices = .)
+    }
   })
   
   output$plot_tracks <- renderPlotly(
-    get_track_timeline(hist(), input$artist)
+    hist() %...>%
+      get_track_timeline(input$artist)
   )
   
   ##################################################
   ################ ALBUM TIMELINE ##################
   ##################################################
-  
   observe({
-    updateSelectInput(inputId = "artist1", choices = artist_list())
+    hist() %...>% {
+      hist <- .
+      hist$artist %>%
+        unique() %>%
+        updateSelectInput(inputId = "artist1", choices = .)
+    }
   })
   
   output$plot_albums <- renderPlotly(
-    get_album_timeline(hist(), input$artist1)
+    hist() %...>%
+      get_album_timeline(input$artist1)
   )
   
   ##################################################
   ################ ARTIST NETWORK ##################
   ##################################################
 
-  output$plot_artist_network <- renderVisNetwork(get_artist_network(hist()))
+  output$plot_artist_network <- renderVisNetwork(
+    hist() %...>%
+      get_artist_network()
+    )
 }
