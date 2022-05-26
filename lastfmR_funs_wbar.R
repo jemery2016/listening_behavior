@@ -18,8 +18,9 @@ run_batch <- function(url_list, indices, update_data){
   out <- multi_run(pool = pool)
 }
 
-get_scrobbles <- function(user, timezone = 'GMT') {
-  withProgress(message = "Getting Listening History", value = 0, {
+get_scrobbles <- function(user, timezone = 'GMT', progress) {
+  #withProgress(message = "Getting Listening History", value = 0, {
+  #progress$set(value = 2)
   #get number of pages
   first_url <- paste0(
     api_root,
@@ -84,7 +85,8 @@ get_scrobbles <- function(user, timezone = 'GMT') {
       `:=`(date = dates, artist = artists, track = tracks, album = albums)
     ]
     #setTxtProgressBar(pb, getTxtProgressBar(pb) + 1L)
-    incProgress(1/pages)
+    #incProgress(1/pages)
+    progress$inc(1/pages)
   }
   
   run_batch(url_list = lastfm_urls, indices = seq(pages), update_data = add_data)
@@ -105,9 +107,8 @@ get_scrobbles <- function(user, timezone = 'GMT') {
   if (timezone != 'GMT') {
     attr(scrobbles$date, "tzone") <- timezone
   }
-  
-  })
   #close(pb)
+  progress$close()
   return(scrobbles)
   }
 

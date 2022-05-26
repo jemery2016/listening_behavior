@@ -1,4 +1,7 @@
-java -jar shinycannon-1.1.3-dd43f6b.jar recording.log http://127.0.0.1:6427 --workers 4 --loaded-duration-minutes 2 --output-dir run
+runApp(getwd())
+shinyloadtest::record_session("http://127.0.0.1:5931")
+
+java -jar shinycannon-1.1.3-dd43f6b.jar recording.log http://127.0.0.1:5931 --workers 5 --loaded-duration-minutes 5 --output-dir run
 
 library(shinyloadtest)
 df <- load_runs("run")

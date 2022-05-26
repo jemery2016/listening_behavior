@@ -15,6 +15,7 @@ library(visNetwork)
 library(igraph)
 library(promises)
 library(future)
+library(ipc)
 plan(multisession)
 source("lastfmR_funs_wbar.R")
 source("plays_over_t_funs.R")
@@ -29,17 +30,18 @@ server <- function(input, output, session) {
   hist <- eventReactive(input$get_hist, {
     user_id <- input$user_id
     timezone <- input$timezone
-    p <- Progress$new()
-    #p$set(value = NULL, message = "Getting Listening History...")
+    progress <- AsyncProgress$new(session, 
+                                  message = "Getting Listening History",
+                                  value = 0)
     future_promise(
-      lastfmR::get_scrobbles(user_id, timezone),
+      #lastfmR::get_scrobbles(user_id, timezone),
+      get_scrobbles(user_id, timezone, progress),
       packages = "lastfmR"
     ) %...>%
       mutate(date_num = ymd_hms(date) |> 
                as_date() |> 
                as.numeric()) %...>%
       as_tibble()
-    #finally(~p$close())
   })
   
   ################################################
